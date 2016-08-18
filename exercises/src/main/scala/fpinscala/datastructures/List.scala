@@ -172,6 +172,26 @@ object List { // `List` companion object. Contains functions for creating and wo
   def appendFold[A](a1: List[A], a2: List[A]): List[A] =
     foldRight(a1, a2)(Cons(_, _))
 
+  // ex 3.15 - Hard: Write a function that concatenates a list of lists into a single list. Its runtime should be linear in the total length of all lists. Try to use functions we have already defined.
+  // I'm unclear whether they mean (List[A], List[List[A]]) => List[A] (flatten + append to different list) or to just flatten one list of lists like (List[List[A]] => List[A]). I'm assuming the second to start.
+  // I finished it and wrote a test to check my answer- on looking at the answer key it is now clear that my append section (using the appendFold method I wrote for 3.14) is redundant.
+
+    // if l is empty return empty list
+    // if l is list take head (List) and tail (list of lists) + execute function
+    // 
+  def flatten[A](l: List[List[A]]): List[A] = 
+      // h is List[A], t is List[List[A]]
+    foldRight(l, Nil:List[A])((h, t) => t match {
+      // if t is empty return finished list
+      case Nil => appendFold(h, Nil)
+      // if t is a list, append its head (a List[A]) to h
+      case Cons(x, xs) => appendFold(h, t)
+    })
+
+  // ex 3.16 - Write a function that transforms a list of integers by adding 1 to each element.
+  def incrementAll(l: List[Int]): List[Int] = 
+    foldRight(l, Nil:List[Int])((h, t) => Cons(h + 1, t))
+
   def map[A,B](l: List[A])(f: A => B): List[B] = sys.error("todo")
 
   def test_sum(sum: List[Int] => Int): Unit = {
@@ -271,6 +291,18 @@ object List { // `List` companion object. Contains functions for creating and wo
     assert(reverse(List(1, 2, 3)) == List(3, 2, 1), "reversed list should be reversed.")
     assert(reverse(Nil) == Nil, "Empty list reversed is empty")
     assert(reverse(List(5)) == List(5), "1-length list is same")
+  }
+
+  def test_flatten(): Unit = {
+    assert(flatten( List(List(1,2,3)) )              == List(1,2,3), "One list should be flattened to One 1-dimensional list")
+    assert(flatten( List(List(1,2,3), List(4,5,6)) ) == List(1,2,3,4,5,6), "Two lists should be flattened to One 1-dimensional list")
+    assert(flatten( List(List(1,2,3), List(4,5,6), List(7,8,9)) ) == List(1,2,3,4,5,6,7,8,9), "Three lists should be flattened to one 1-dimensional list")
+  }
+
+  def test_increment_all(): Unit = {
+    assert( incrementAll(List(1, 2, 3)) == List(2, 3, 4), "Everything should increment" )
+    assert( incrementAll(List()) == List(), "Nothing to increment" )
+    // assert(false, "should fail")
   }
 
   def test(): Unit = {
