@@ -128,28 +128,44 @@ object List { // `List` companion object. Contains functions for creating and wo
   def length[A](l: List[A]): Int = {
     foldRight(l, 0)((_, b) => 1 + b)
   }
-  /* trace for List(1, 2, 3)
+  /* 
+  trace for List(1, 2, 3)
     1 + foldRight(List(2, 3))((a, b) => 1 + b)
     1 + 1 + foldRight(List(3)) ...
     1 + 1 + 1 + foldRight(List()) ...
     1 + 1 + 1 + 0
   */
 
+
   // ex 3.10 foldLeft with tailrec
+  // use z as acc
   // my solution is identical to the answer minus the use of the extra val- answer key says
   // foldLeft(t, f(z,h))(f) - I think this is just a mindset I need to get into.
   @annotation.tailrec
   def foldLeft[A,B](l: List[A], z: B)(f: (B, A) => B): B = l match {
     case Nil => z
     case Cons(h, t) => {
-      val next = f(z, h)
-      foldLeft(t, next)(f)
+      // z is acc so put it first
+      val acc = f(z, h)
+      foldLeft(t, acc)(f)
     }
   }
+  // ex 3.11 sum, product and length with foldLeft
+  // I first tried to do this with a type List[A] but got an overloaded method compilation error.
+  // Looking back at the original foldRight method I see what it was doing- I confused the utility of foldRight's flexibility with types with sum itself.
+  // After this exercise I'm not actually clear on the difference ITO why I'd ever prefer foldRight over left.
+  def sumLeft(l: List[Int]) = foldLeft(l, 0)(_ + _)
+  def productLeft(l: List[Double]) = foldLeft(l, 1.0)((acc, h) => acc * h)
+  def lengthLeft[A](l: List[A]) = foldLeft(l, 0)((acc, _) => acc + 1)
+
+  // ex 3.12 reverse()
+  // List(1,2,3) is the tail(2,3) reversed + the head
+  // with accumulator just add head to starting list (now the tail)
+  def reverse[A](l: List[A]) = foldLeft(l, Nil:List[A])((acc, h) => Cons(h, acc))
 
   def map[A,B](l: List[A])(f: A => B): List[B] = sys.error("todo")
-  def test_sum(sum: List[Int] => Int): Unit =
-  {
+
+  def test_sum(sum: List[Int] => Int): Unit = {
     assert( sum(           Nil ) ==  0, "sum of empty list should be 0")
     assert( sum(       List(5) ) ==  5, "sum of single-element list should be the element" )
     assert( sum( List(1,2,3,4) ) == 10, "sum of list should be sum of its elements" )
@@ -158,8 +174,7 @@ object List { // `List` companion object. Contains functions for creating and wo
   def test_sum(): Unit = test_sum(sum)
   def test_sum2(): Unit = test_sum(sum2)
 
-  def test_product(product: List[Double] => Double): Unit =
-  {
+  def test_product(product: List[Double] => Double): Unit = {
     assert( product( Nil)                       ==  1.0,  "product of empty list should be 1.0" )
     assert( product( List(7.0))                 ==  7.0,  "product of single-element list should be the element" )
     assert( product( List(1.0, 2.0, 3.0, 4.0) ) == 24.0,  "product of list should be product of its elements" )
@@ -169,8 +184,7 @@ object List { // `List` companion object. Contains functions for creating and wo
   def test_product(): Unit = test_product(product)
   def test_product2(): Unit = test_product(product2)
 
-  def test_append(): Unit =
-  {
+  def test_append(): Unit = {
     assert( append( Nil,             Nil ) ==           Nil, "append of two empty lists should be empty list")
     assert( append( Nil,         List(3) ) ==       List(3), "append of empty list to a list should be list")
     assert( append( List(3),         Nil ) ==       List(3), "append of list to empty list should be list")
@@ -179,22 +193,19 @@ object List { // `List` companion object. Contains functions for creating and wo
     assert( append( List(1,2), List(3,4) ) == List(1,2,3,4), "append of two lists should be concatenation of lists")
   }
 
-  def test_tail(): Unit =
-  {
+  def test_tail(): Unit = {
     assert( tail(         Nil ) ==       Nil, "tail of Nil should be Nil")
     assert( tail(     List(3) ) ==       Nil, "tail of single-element list should be Nil")
     assert( tail( List(1,2,3) ) == List(2,3), "tail of list should be rest")
   }
 
-  def test_setHead(): Unit =
-  {
+  def test_setHead(): Unit = {
     assert( setHead(       Nil, 1 ) ==       Nil, "setHead of empty list should be empty list")
     assert( setHead(   List(2), 1 ) ==   List(1), "setHead of single-element list should be two-element list")
     assert( setHead( List(3,2), 1 ) == List(1,2), "setHead of two-element list should be three-element list")
   }
 
-  def test_drop(): Unit =
-  {
+  def test_drop(): Unit = {
     assert( drop( Nil,          0) ==         Nil, "drop of zero elements from empty list is empty list")
     assert( drop( Nil,          1) ==         Nil, "drop of one element from empty list is empty list")
     assert( drop( Nil,         10) ==         Nil, "drop of many elements from empty list is empty list")
@@ -207,8 +218,7 @@ object List { // `List` companion object. Contains functions for creating and wo
     assert( drop( List(1,2,3), 10) ==         Nil, "drop of too many elements from list is empty list")
   }
 
-  def test_dropWhile(): Unit =
-  {
+  def test_dropWhile(): Unit = {
     val positive = (x: Int) => x > 0
     assert( dropWhile(                  Nil, positive ) ==                  Nil, "dropWhile of empty list should be empty list")
     assert( dropWhile(              List(1), positive ) ==                  Nil, "dropWhile of list with single valid element should be empty list")
@@ -219,22 +229,19 @@ object List { // `List` companion object. Contains functions for creating and wo
     assert( dropWhile( List(-1, -2, -3, -4), positive ) == List(-1, -2, -3, -4), "dropWhile of list with no valid elements should be Nil")
   }
 
-  def test_init(): Unit =
-  {
+  def test_init(): Unit = {
     assert( init(         Nil ) ==       Nil, "init of empty list should be empty list")
     assert( init(     List(3) ) ==       Nil, "init of single-element-list should be empty list")
     assert( init( List(1,2,3) ) == List(1,2), "init of list should not have last element")
   }
 
-  def test_length(): Unit =
-  {
+  def test_length(): Unit = {
     assert( length(         Nil ) == 0, "length of empty list is zero")
     assert( length(     List(1) ) == 1, "length of single-element list is one")
     assert( length( List(1,2,3) ) == 3, "length of n-element list is n")
   }
 
-  def test_foldLeft(): Unit =
-  {
+  def test_foldLeft(): Unit = {
     assert( foldLeft(  List(1, 2, 3, 4, 5), 0) (_ + _) ==
       foldRight( List(1, 2, 3, 4, 5), 0) (_ + _),
       "foldLeft should compute the same sum value as foldRight")
@@ -246,6 +253,12 @@ object List { // `List` companion object. Contains functions for creating and wo
     assert( foldLeft(  List("a", "b", "c"), "") (_ + _) ==
       foldRight( List("a", "b", "c"), "") (_ + _),
       "foldLeft should compute the same concatenation value as foldRight")
+  }
+
+  def test_reverse(): Unit = {
+    assert(reverse(List(1, 2, 3)) == List(3, 2, 1), "reversed list should be reversed.")
+    assert(reverse(Nil) == Nil, "Empty list reversed is empty")
+    assert(reverse(List(5)) == List(5), "1-length list is same")
   }
 
   def test(): Unit = {
@@ -261,5 +274,6 @@ object List { // `List` companion object. Contains functions for creating and wo
     test_init
     test_length
     test_foldLeft
+    test_reverse
   }
 }
