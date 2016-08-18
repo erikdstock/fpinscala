@@ -192,6 +192,11 @@ object List { // `List` companion object. Contains functions for creating and wo
   def incrementAll(l: List[Int]): List[Int] = 
     foldRight(l, Nil:List[Int])((h, t) => Cons(h + 1, t))
 
+  // ex 3.17 - map list of doubles to list of strings
+  def doublesToStrings(l: List[Double]): List[String] = 
+    foldRight(l, Nil:List[String])((h, t) => Cons(h.toString, t))
+
+  // ex 3.18 - Write map
   def map[A,B](l: List[A])(f: A => B): List[B] = sys.error("todo")
 
   def test_sum(sum: List[Int] => Int): Unit = {
@@ -223,7 +228,7 @@ object List { // `List` companion object. Contains functions for creating and wo
   }
 
   def test_append_1(): Unit = test_append(append)
-  def test_append_fold: Unit = test_append(appendFold)
+  def test_append_fold(): Unit = test_append(appendFold)
 
   def test_tail(): Unit = {
     assert( tail(         Nil ) ==       Nil, "tail of Nil should be Nil")
@@ -305,6 +310,10 @@ object List { // `List` companion object. Contains functions for creating and wo
     // assert(false, "should fail")
   }
 
+  def test_doubles_to_strings: Unit = {
+    assert ( doublesToStrings(List(1.0, 3.4, 4.2)) == List("1.0", "3.4", "4.2"), "List of Doubles returns list of strings")
+  }
+
   def test(): Unit = {
     test_sum
     test_sum2
@@ -320,5 +329,8 @@ object List { // `List` companion object. Contains functions for creating and wo
     test_length
     test_foldLeft
     test_reverse
+    test_flatten
+    test_increment_all
+    test_doubles_to_strings
   }
 }
