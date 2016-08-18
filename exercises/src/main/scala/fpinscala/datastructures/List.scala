@@ -33,6 +33,7 @@ object List { // `List` companion object. Contains functions for creating and wo
     case _ => 101 // would have matched anything
   }
 
+  // concat 2 lists
   def append[A](a1: List[A], a2: List[A]): List[A] =
     a1 match {
       case Nil => a2
@@ -163,6 +164,14 @@ object List { // `List` companion object. Contains functions for creating and wo
   // with accumulator just add head to starting list (now the tail)
   def reverse[A](l: List[A]) = foldLeft(l, Nil:List[A])((acc, h) => Cons(h, acc))
 
+  // ex 3.13 [hard] implement foldLeft ITO of foldRight and vice versa
+  // TODO: revisit this. looks doable.
+
+  // ex 3.14 implement append() with a fold.
+  // 
+  def appendFold[A](a1: List[A], a2: List[A]): List[A] =
+    foldRight(a1, a2)(Cons(_, _))
+
   def map[A,B](l: List[A])(f: A => B): List[B] = sys.error("todo")
 
   def test_sum(sum: List[Int] => Int): Unit = {
@@ -184,7 +193,7 @@ object List { // `List` companion object. Contains functions for creating and wo
   def test_product(): Unit = test_product(product)
   def test_product2(): Unit = test_product(product2)
 
-  def test_append(): Unit = {
+  def test_append(append: (List[Int], List[Int]) => List[Int] ): Unit = {
     assert( append( Nil,             Nil ) ==           Nil, "append of two empty lists should be empty list")
     assert( append( Nil,         List(3) ) ==       List(3), "append of empty list to a list should be list")
     assert( append( List(3),         Nil ) ==       List(3), "append of list to empty list should be list")
@@ -192,6 +201,9 @@ object List { // `List` companion object. Contains functions for creating and wo
     assert( append( List(1),   List(2,3) ) ==   List(1,2,3), "append of one-element list to list should be concatenation of lists")
     assert( append( List(1,2), List(3,4) ) == List(1,2,3,4), "append of two lists should be concatenation of lists")
   }
+
+  def test_append_1(): Unit = test_append(append)
+  def test_append_fold: Unit = test_append(appendFold)
 
   def test_tail(): Unit = {
     assert( tail(         Nil ) ==       Nil, "tail of Nil should be Nil")
@@ -266,7 +278,8 @@ object List { // `List` companion object. Contains functions for creating and wo
     test_sum2
     test_product
     test_product2
-    test_append
+    test_append_1
+    test_append_fold
     test_tail
     test_setHead
     test_drop
