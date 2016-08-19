@@ -29,7 +29,7 @@ object List { // `List` companion object. Contains functions for creating and wo
     case Cons(x, Cons(2, Cons(4, _))) => x // no, 2nd tail should start with 3
     case Nil => 42 // no, would only match Nil
     case Cons(x, Cons(y, Cons(3, Cons(4, _)))) => x + y // 3: x + y match the first 2 items
-    case Cons(h, t) => h + sum(t) // would match + return x.sum() if previous statement hadn't matched 
+    case Cons(h, t) => h + sum(t) // would match + return x.sum() if previous statement hadn't matched
     case _ => 101 // would have matched anything
   }
 
@@ -129,7 +129,7 @@ object List { // `List` companion object. Contains functions for creating and wo
   def length[A](l: List[A]): Int = {
     foldRight(l, 0)((_, b) => 1 + b)
   }
-  /* 
+  /*
   trace for List(1, 2, 3)
     1 + foldRight(List(2, 3))((a, b) => 1 + b)
     1 + 1 + foldRight(List(3)) ...
@@ -146,7 +146,7 @@ object List { // `List` companion object. Contains functions for creating and wo
   def foldLeft[A,B](l: List[A], z: B)(f: (B, A) => B): B = l match {
     case Nil => z
     case Cons(h, t) => {
-      // z is acc so put it first
+      // z is acc so I put it first
       val acc = f(z, h)
       foldLeft(t, acc)(f)
     }
@@ -162,24 +162,26 @@ object List { // `List` companion object. Contains functions for creating and wo
   // ex 3.12 reverse()
   // List(1,2,3) is the tail(2,3) reversed + the head
   // with accumulator just add head to starting list (now the tail)
-  def reverse[A](l: List[A]) = foldLeft(l, Nil:List[A])((acc, h) => Cons(h, acc))
+  def reverse[A](l: List[A]) = 
+    foldLeft(l, Nil:List[A])((acc, h) => Cons(h, acc))
 
   // ex 3.13 [hard] implement foldLeft ITO of foldRight and vice versa
   // TODO: revisit this. looks doable.
 
   // ex 3.14 implement append() with a fold.
-  // 
+  //
   def appendFold[A](a1: List[A], a2: List[A]): List[A] =
     foldRight(a1, a2)(Cons(_, _))
 
   // ex 3.15 - Hard: Write a function that concatenates a list of lists into a single list. Its runtime should be linear in the total length of all lists. Try to use functions we have already defined.
   // I'm unclear whether they mean (List[A], List[List[A]]) => List[A] (flatten + append to different list) or to just flatten one list of lists like (List[List[A]] => List[A]). I'm assuming the second to start.
   // I finished it and wrote a test to check my answer- on looking at the answer key it is now clear that my append section (using the appendFold method I wrote for 3.14) is redundant.
+  // This was by far the hardest problem I've had so far.
 
     // if l is empty return empty list
     // if l is list take head (List) and tail (list of lists) + execute function
-    // 
-  def flatten[A](l: List[List[A]]): List[A] = 
+    //
+  def flatten[A](l: List[List[A]]): List[A] =
       // h is List[A], t is List[List[A]]
     foldRight(l, Nil:List[A])((h, t) => t match {
       // if t is empty return finished list
@@ -189,15 +191,63 @@ object List { // `List` companion object. Contains functions for creating and wo
     })
 
   // ex 3.16 - Write a function that transforms a list of integers by adding 1 to each element.
-  def incrementAll(l: List[Int]): List[Int] = 
+  def incrementAll(l: List[Int]): List[Int] =
     foldRight(l, Nil:List[Int])((h, t) => Cons(h + 1, t))
 
   // ex 3.17 - map list of doubles to list of strings
-  def doublesToStrings(l: List[Double]): List[String] = 
+  def doublesToStrings(l: List[Double]): List[String] =
     foldRight(l, Nil:List[String])((h, t) => Cons(h.toString, t))
 
-  // ex 3.18 - Write map
-  def map[A,B](l: List[A])(f: A => B): List[B] = sys.error("todo")
+  // ex 3.18 - Implement map()
+  def map[A,B](l: List[A])(f: A => B): List[B] =
+    foldRight(l, Nil:List[B])((h, t) => Cons(f(h), t))
+
+  // ex 3.19 - Implement filter()
+  // I tried this with foldLeft because I hadn't used that in a while and realized it will come out reversed.
+  def filter[A](l: List[A])(f: A => Boolean): List[A] =
+    foldRight(l, Nil:List[A])((h, t) => if (f(h)) Cons(h, t) else t)
+    // foldLeft(l, Nil:List[A])((acc, h) => if (f(h)) Cons(h, acc) else acc)
+
+  // ex 3.20 - implement flatMap, which should take a function that returns a list and return a final list
+  // I wasn't sure if they wanted it using only folds or whether I could use my previous functions. both work.
+  def flatMap[A,B](as: List[A])(f: A => List[B]): List[B] =
+    foldRight(foldRight(as, Nil:List[List[B]])((h, t) => Cons(f(h), t)), Nil:List[B])(appendFold(_, _))
+    // flatten(map(as)(f)) // or this
+
+  // ex 3.21 - Use flatMap to implement filter()
+  // I'm not sure what this means.
+  def filterWithFlatMap[A](l: List[A])(f: A => Boolean): List[A] =
+    flatMap(l)(x => if (f(x)) Cons(x, Nil) else Nil)
+
+  // ex 3.22 - Add elements of 2 lists to form new list
+  // really unsure about this, but it works...
+  // Ok, after checking the answer I was right in a sense- I used nested case statements via the head() function I created inside and foldLeft()
+  // However, had the book introduced matching on tuples or pairs before I did this that would have been a much easier way.
+  // I also was under the impression I was supposed to be using fold whenever possible.
+  // offical solution:
+  //   def addPairwise(a: List[Int], b: List[Int]): List[Int] = (a,b) match {
+  //   case (Nil, _) => Nil
+  //   case (_, Nil) => Nil
+  //   case (Cons(h1,t1), Cons(h2,t2)) => Cons(h1+h2, addPairwise(t1,t2))
+  // }
+  // Mine:
+  def addLists(l1: List[Int], l2: List[Int]): List[Int] = {
+    def head[A](l: List[A]): A = l match {
+      case Nil => sys.error("No head.")
+      case Cons(x, xs) => x
+    }
+    reverse(foldLeft(l1, Nil:List[Int])((acc, h) => Cons(h + head(drop(l2, length(acc))), acc)))
+  }
+
+  // ex 3.23 implement zipWith() like above, but taking a function for any list instead of addition
+  // This was much easier.
+  def zipWith[A, B](l1: List[A], l2: List[A])(f: (A, A) => B): List[B] = (l1, l2) match {
+    case (Nil, _) => Nil
+    case (_, Nil) => Nil
+    case (Cons(h1, t1), Cons(h2, t2)) => Cons(f(h1, h2), zipWith(t1, t2)(f))
+  }
+
+
 
   def test_sum(sum: List[Int] => Int): Unit = {
     assert( sum(           Nil ) ==  0, "sum of empty list should be 0")
@@ -227,7 +277,7 @@ object List { // `List` companion object. Contains functions for creating and wo
     assert( append( List(1,2), List(3,4) ) == List(1,2,3,4), "append of two lists should be concatenation of lists")
   }
 
-  def test_append_1(): Unit = test_append(append)
+  def test_append(): Unit = test_append(append)
   def test_append_fold(): Unit = test_append(appendFold)
 
   def test_tail(): Unit = {
@@ -310,8 +360,39 @@ object List { // `List` companion object. Contains functions for creating and wo
     // assert(false, "should fail")
   }
 
-  def test_doubles_to_strings: Unit = {
+  def test_doubles_to_strings(): Unit = {
     assert ( doublesToStrings(List(1.0, 3.4, 4.2)) == List("1.0", "3.4", "4.2"), "List of Doubles returns list of strings")
+  }
+
+  def test_map(): Unit = {
+    assert( map(List(1, 2, 3))(_ * 3 + 1) == List(4, 7, 10), "Map works with same type" )
+    assert( map(List(1, 2, 3))((x) => (x * 3).toString) == List("3", "6", "9"), "Works changing type" )
+    // assert(false, "should fail")
+  }
+
+  def test_filter(): Unit = {
+    assert( filter(List(1, 2, 3, 1))(_ == 1) == List(1, 1), "Filter works" )
+    assert( filter(List(1, 2, 3, 4))(_ % 2 == 1) == List(1,3), "Filter odd numbers")
+    assert( filter(List(1, 2, 3, 4, 5, 7, 8, 128))(_ % 2 == 0) == List(2, 4, 8, 128), "Filter even numbers")
+    // assert(false, "should fail")
+  }
+
+  def test_filter_with_flat_map(): Unit = {
+    assert( filterWithFlatMap(List(1, 2, 3, 1))(_ == 1) == List(1, 1), "Filter works" )
+    assert( filterWithFlatMap(List(1, 2, 3, 4))(_ % 2 == 1) == List(1,3), "Filter odd numbers")
+    assert( filterWithFlatMap(List(1, 2, 3, 4, 5, 7, 8, 128))(_ % 2 == 0) == List(2, 4, 8, 128), "Filter even numbers")
+    // assert(false, "should fail")
+  }
+
+  def test_flat_map(): Unit = {
+    assert( flatMap(List(1, 2, 3))(x => List(x, x)) == List(1, 1, 2, 2, 3, 3), "Works with example from book" )
+  }
+  def test_add_lists(): Unit = {
+    assert( addLists(List(1, 2, 3), List(4, 5, 6)) == List(5, 7, 9), "Works with example from book" )
+  }
+
+  def test_zip_with(): Unit = {
+    assert( zipWith(List(1, 2, 3), List(4, 5, 6))(_.toString + _.toString) == List("14", "25", "36"), "Works with a general anonymous function" )
   }
 
   def test(): Unit = {
@@ -319,7 +400,7 @@ object List { // `List` companion object. Contains functions for creating and wo
     test_sum2
     test_product
     test_product2
-    test_append_1
+    test_append
     test_append_fold
     test_tail
     test_setHead
@@ -332,5 +413,9 @@ object List { // `List` companion object. Contains functions for creating and wo
     test_flatten
     test_increment_all
     test_doubles_to_strings
+    test_map
+    test_filter
+    test_filter_with_flat_map
+    test_add_lists
   }
 }
