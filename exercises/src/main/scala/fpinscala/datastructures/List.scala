@@ -215,7 +215,8 @@ object List { // `List` companion object. Contains functions for creating and wo
     // flatten(map(as)(f)) // or this
 
   // ex 3.21 - Use flatMap to implement filter()
-  // I'm not sure what this means.
+  // I'm not sure what this means. I got the basic idea for how I would approach this from a google search
+  // that led to a scala blog post talking about List from the standard library. In general I haven't been using outside resources
   def filterWithFlatMap[A](l: List[A])(f: A => Boolean): List[A] =
     flatMap(l)(x => if (f(x)) Cons(x, Nil) else Nil)
 
@@ -247,7 +248,25 @@ object List { // `List` companion object. Contains functions for creating and wo
     case (Cons(h1, t1), Cons(h2, t2)) => Cons(f(h1, h2), zipWith(t1, t2)(f))
   }
 
+  // ex 3.24 implement hasSubsequence
+  // I was nervous about this but was actually able to write it all in one shot.
+  def hasSubsequence[A](sup: List[A], sub: List[A]): Boolean = {
+    @annotation.tailrec
+    def go(l1: List[A], l2: List[A]): Boolean = (l1, l2) match {
+      case (_, Nil) => true // sub ran out of letters
+      case (Nil, _) => false // sup ran out of letters
+      case (Cons(x, xs), Cons(y, ys)) => if (x == y) go(xs, ys) else hasSubsequence(xs, sub)
+    }
+    go(sup, sub)
+  }
 
+  //////// Tests /////////
+  /*
+    These tests were linked from the fpinscala github wiki. I copied them into this file and 
+    and added to them as necessary. They were named in snake case when I got them- otherwise 
+    I would have followed the convention above and switched to snake case. It was annoying me
+    the whole time I worked on this file and I just don't want it to make me seem sloppy.
+  */
 
   def test_sum(sum: List[Int] => Int): Unit = {
     assert( sum(           Nil ) ==  0, "sum of empty list should be 0")
@@ -395,6 +414,11 @@ object List { // `List` companion object. Contains functions for creating and wo
     assert( zipWith(List(1, 2, 3), List(4, 5, 6))(_.toString + _.toString) == List("14", "25", "36"), "Works with a general anonymous function" )
   }
 
+  def test_has_subsequence(): Unit = {
+    assert( hasSubsequence(List(1, 2, 3, 4, 5), List(4, 5)) == true, "finds a subsequence and returns true" )
+    assert( hasSubsequence(List(1, 2, 3, 4, 5), List(4, 5, 6)) == false, "fails to find a subsequence and returns false" )
+  }
+
   def test(): Unit = {
     test_sum
     test_sum2
@@ -417,5 +441,7 @@ object List { // `List` companion object. Contains functions for creating and wo
     test_filter
     test_filter_with_flat_map
     test_add_lists
+    test_zip_with
+    test_has_subsequence
   }
 }
