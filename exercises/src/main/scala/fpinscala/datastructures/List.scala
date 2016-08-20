@@ -26,7 +26,7 @@ object List { // `List` companion object. Contains functions for creating and wo
   // Exercise 3.1 - what will be the return?
   // A: 3.
   val x = List(1,2,3,4,5) match {
-    case Cons(x, Cons(2, Cons(4, _))) => x // no, 2nd tail should start with 3
+    case Cons(x, Cons(2, Cons(4, _))) => x // no, 2nd tail should start with 3, not 4
     case Nil => 42 // no, would only match Nil
     case Cons(x, Cons(y, Cons(3, Cons(4, _)))) => x + y // 3: x + y match the first 2 items
     case Cons(h, t) => h + sum(t) // would match + return x.sum() if previous statement hadn't matched
@@ -118,7 +118,7 @@ object List { // `List` companion object. Contains functions for creating and wo
   // 3.8
   //See what happens when you pass Nil and Cons themselves to foldRight, like this: foldRight(List(1,2,3), Nil:List[Int])(Cons(_,_)).[10] What do you think this says about the relationship between foldRight and the data constructors of List?
   def exThreeEight[A](l: List[A]) = foldRight(l, Nil:List[A])(Cons(_,_))
-  // When passed a constructor for lists with items and Nil for empty lists, this becomes an identity function. this may be composition?
+  // When passed a constructor for lists with items and Nil for empty lists, this becomes an identity function
 
   // note- review 3.7-3.8
 
