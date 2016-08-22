@@ -100,7 +100,9 @@ object List { // `List` companion object. Contains functions for creating and wo
   }
 
   // Ex 3.7
-  // Can product, implemented using foldRight, immediately halt the recursion and return 0.0 if it encounters a 0.0? Why or why not? Consider how any short-circuiting might work if you call foldRight with a large list.
+  // Can product, implemented using foldRight, immediately halt the recursion and return 0.0 if it
+  // encounters a 0.0? Why or why not? Consider how any short-circuiting might work if you call foldRight
+  // with a large list.
   // def product2(ns: List[Double]) = foldRight(ns, 1.0)(_ * _) // original product w/ foldRight
   // def product3(ns: List[Double]) = {
   //   def multiply(h: Double, t: List): Double = h match {
@@ -113,7 +115,9 @@ object List { // `List` companion object. Contains functions for creating and wo
   //   if (list contains 0) 0
   //   else foldRight(ns, 1.0)(_ * _)
   // }
-  // I don't see a way I could stop the stack from within the product3 definition since every foldRight has to call itself. I would probably have to scan the list for the value ahead of time (in product3) which would mean an increase from O(n) to O(2n).
+  // I don't see a way I could stop the stack from within the product3 definition since every foldRight
+  // has to call itself. I would probably have to scan the list for the value ahead of time (in product3)
+  // which would mean an increase from O(n) to O(2n).
 
   // 3.8
   //See what happens when you pass Nil and Cons themselves to foldRight, like this: foldRight(List(1,2,3), Nil:List[Int])(Cons(_,_)).[10] What do you think this says about the relationship between foldRight and the data constructors of List?
@@ -143,7 +147,7 @@ object List { // `List` companion object. Contains functions for creating and wo
   // my solution is identical to the answer minus the use of the extra val- answer key says
   // foldLeft(t, f(z,h))(f) - I think this is just a mindset I need to get into.
   @annotation.tailrec
-  def foldLeft[A,B](l: List[A], z: B)(f: (B, A) => B): B = l match {
+  def foldLeft[A, B](l: List[A], z: B)(f: (B, A) => B): B = l match {
     case Nil => z
     case Cons(h, t) => {
       // z is acc so I put it first
@@ -162,11 +166,26 @@ object List { // `List` companion object. Contains functions for creating and wo
   // ex 3.12 reverse()
   // List(1,2,3) is the tail(2,3) reversed + the head
   // with accumulator just add head to starting list (now the tail)
-  def reverse[A](l: List[A]) = 
+  def reverse[A](l: List[A]) =
     foldLeft(l, Nil:List[A])((acc, h) => Cons(h, acc))
 
   // ex 3.13 [hard] implement foldLeft ITO of foldRight and vice versa
-  // TODO: revisit this. looks doable.
+  // This was the last exercise I completed (Monday morning 8/22). 
+  // I thought I had figured out and proven it mathematically and it compiled correctly
+  // but the answer key solution is significantly different- by far the most complex
+  // answer in the chapter.
+  // looking back it now seems clear that using reverse would have been a better way to go-
+  // I just wasn't thinking in the context of the functions I had just written.
+  def foldLeftFromRight[A, B](as: List[A], acc: B)(f: (A, B) => B): B = as match {
+    case Nil => acc
+    case Cons(x, xs) => foldRight(xs, f(x, acc))(f)
+  }
+
+  def foldRightFromLeft[A, B](as: List[A], z: B)(f: (B, A) => B): B = as match {
+    case Nil => z
+    case Cons(x, xs) => f( foldLeft(xs, z)(f), x )
+  }
+
 
   // ex 3.14 implement append() with a fold.
   //
@@ -262,8 +281,8 @@ object List { // `List` companion object. Contains functions for creating and wo
 
   //////// Tests /////////
   /*
-    These tests were linked from the fpinscala github wiki. I copied them into this file and 
-    and added to them as necessary. They were named in snake case when I got them- otherwise 
+    These tests were linked from the fpinscala github wiki. I copied them into this file and
+    and added to them as necessary. They were named in snake case when I got them- otherwise
     I would have followed the convention above and switched to snake case. It was annoying me
     the whole time I worked on this file and I just don't want it to make me seem sloppy.
   */
