@@ -5,27 +5,31 @@ import scala.{Option => _, Some => _, Either => _, _} // hide std library `Optio
 
 sealed trait Option[+A] {
   def map[B](f: A => B): Option[B] = this match {
+    case None => None
     case Some(a) => Some(f(a))
-    case _ => None
   }
 
   def getOrElse[B>:A](default: => B): B = this match {
+    case None => default
     case Some(a) => a
-    case _ => default
   }
 
-  // map(A => Option[B]) could return Some(None) -
-  def flatMap[B](f: A => Option[B]): Option[B] =
-    map(f) getOrElse None
+  def flatMap[B](f: A => Option[B]): Option[B] = map(f) getOrElse None
+  // this.map(f).getOrElse(None)
+  // (Some(Option[B])).getOrElse None
 
-  def orElse[B>:A](ob: => Option[B]): Option[B] =
-//    if (this != None) this else ob
-    map (Some(_)) getOrElse(ob)
+  def orElse[B>:A](ob: => Option[B]): Option[B] = map(Some(_)) getOrElse ob
+  // map(Some(_)) getOrElse ob
+  // Some(x) getOrElse ob         ||   None getOrElse ob
 
-  def filter(f: A => Boolean): Option[A] = {
-    flatMap (a => if (f(a)) Some(a) else None)
-  }
+
+  def filter(f: A => Boolean): Option[A] = flatMap(x => if (f(x)) Some(x) else None )
+  //  Some(2).filter(x=> x % 2 != 0) >> f
+  // Some(2) flatMap(x => if (f(x)) Some(x) else None)
+  // Some(2) map(x => if (f(x)) Some(x) else None) getOrElse None
+  // x = 2    Some(if (false) Some(x) else None)
 }
+
 case class Some[+A](get: A) extends Option[A]
 case object None extends Option[Nothing]
 
@@ -51,70 +55,17 @@ object Option {
     if (xs.isEmpty) None
     else Some(xs.sum / xs.length)
 
-  // ex 4.2 failed
+  // ex 4.2 the variance is the mean of math.pow(x - m, 2) for each element x in the sequence.
+
   def variance(xs: Seq[Double]): Option[Double] = {
-    val m = flatmap (mean(xs))
-    mean(map ((x: Double) => math.pow(x - m, 2)))
-  }
-  /*
-  If the mean of a sequence is m, the variance is the mean of math.pow(x - m, 2) for each element x in the sequence.
-   */
-
-  def map2[A,B,C](a: Option[A], b: Option[B])(f: (A, B) => C): Option[C] = {
-    a flatMap (aa => b map (bb => f(aa, bb)))
+    mean(xs).flatMap(m => mean(xs.map(x => math.pow(x-m, 2))))
+//    xs map (x => math.pow(x - m, 2))
   }
 
-  def sequence[A](a: List[Option[A]]): Option[List[A]] =
-    a map (aa => aa match {
-      case x :: xs => Some(x) :: sequence(xs)
-      case Nil => None
-    })
+  /* Write a generic function map2 that combines two Option values using a binary function. If either Option value is None, then the return value is too. Here is its signature: */
+  def map2[A,B,C](a: Option[A], b: Option[B])(f: (A, B) => C): Option[C] = ???
+
+  def sequence[A](a: List[Option[A]]): Option[List[A]] = ???
 
   def traverse[A, B](a: List[A])(f: A => Option[B]): Option[List[B]] = sys.error("todo")
 }
-
-//sealed trait Option[+A] {
-//  def map[B](f: A => B): Option[B] = this match {
-//    case None => None
-//    case Some(a) => Some(f(a))
-//  }
-//
-//  def getOrElse[B>:A](default: => B): B = this match {
-//    case None => default
-//    case Some(a) => a
-//  }
-//
-//  // got this one wrong. correct body is :
-//  // def flatMap[B](f: A => Option[B]): Option[B] =
-//  //   map(f) getOrElse None
-//  // so basically this is returning the value without the option container.
-//  // I think? This is weird. signature is different from map. maybe revisit TODO
-//  def flatMap[B](f: A => Option[B]): Option[B] = {
-//    map(f) getOrElse None // correct answer
-//    //  this match {
-//    //    case None => None
-//    //    case Some(a) => f(a)
-//  }
-//
-//  def orElse[B>:A](ob: => Option[B]): Option[B] = this match {
-//    case None => ob
-//    case Some(a) => this
-//  }
-//  def orElse_2[B>:A](ob: => Option[B]): Option[B] =
-//  //  this map((b) => b) getOrElse ob // wrong
-//    this map (Some(_)) getOrElse ob
-//
-//  // suggested answers are below
-//  def filter(f: A => Boolean): Option[A] = this match {
-//    case None => None
-//    case Some(a) => if (f(a)) Some(a) else None
-//  }
-//  // def filter_1(f: A => Boolean): Option[A] =
-//  //  flatMap(a => if (f(a)) Some(a) else None)
-//  //
-//  //  /* Or via explicit pattern matching. */
-//  //  def filter(f: A => Boolean): Option[A] = this match {
-//  //    case Some(a) if f(a) => this
-//  //    case _ => None
-//  //  }
-//}
