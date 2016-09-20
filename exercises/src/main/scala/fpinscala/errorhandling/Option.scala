@@ -62,10 +62,25 @@ object Option {
 //    xs map (x => math.pow(x - m, 2))
   }
 
-  /* Write a generic function map2 that combines two Option values using a binary function. If either Option value is None, then the return value is too. Here is its signature: */
-  def map2[A,B,C](a: Option[A], b: Option[B])(f: (A, B) => C): Option[C] = ???
+  /* 4.3 Write a generic function map2 that combines two Option values using a binary function. If either Option value is None, then the return value is too. Here is its signature: */
+  def map2[A,B,C](a: Option[A], b: Option[B])(f: (A, B) => C): Option[C] = b flatMap((i: B) => a map ((h: A) => f(h, i)))
+// a flatMap (aa => b map (bb => f(aa, bb))) Book answer
 
-  def sequence[A](a: List[Option[A]]): Option[List[A]] = ???
 
-  def traverse[A, B](a: List[A])(f: A => Option[B]): Option[List[B]] = sys.error("todo")
+  /* 4.4
+  Write a function sequence that combines a list of Options into one Option containing a list of all the Some values in the original list.
+  If the original list contains None even once, the result of the function should be None;
+  else should be Some with a list of all the values.
+  */
+  def sequence[A](a: List[Option[A]]): Option[List[A]] = a match {
+    case Nil => Some(Nil)
+//    case x :: xs => x.flatMap(aa => aa :: sequence(xs))
+    case h :: t => h flatMap (hh => sequence(t) map (hh :: _)) // so hard.
+  }
+
+  // was getting errors that basically my Some(Nil) type was too general. had to add the option[list[b]] to the foldRight call
+  def traverse[A, B](a: List[A])(f: A => Option[B]): Option[List[B]] =
+    a.foldRight[Option[List[B]]](Some(Nil))((x, z) => f(x).flatMap(xx => z.map(xx :: _)))
+//   a.foldRight[Option[List[B]]](Some(Nil))((h,t) => map2(f(h),t)(_ :: _))  // the book answer
+
 }
